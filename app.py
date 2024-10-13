@@ -36,20 +36,25 @@ def load_data():
 
 claims_df, enrollment_df = load_data()
 
-# Function to process the user's question using GPT-4
+# Function to process the user's question using GPT-4 (with the new Chat API)
 def ask_question(question, claims_df, enrollment_df):
     # Combine the two datasets into a prompt
     combined_data = f"Claims Data:\n{claims_df.head(10).to_string()}\n\nEnrollment Data:\n{enrollment_df.head(10).to_string()}\n"
     prompt = f"{combined_data}\n\nUser Question: {question}\nAnswer based on the data:"
-
-    # Call the OpenAI API to get the response from GPT-4
-    response = openai.Completion.create(
-        engine="gpt-4",  # Using GPT-4
-        prompt=prompt,
+    
+    # Call the OpenAI Chat API (using GPT-4)
+    response = openai.ChatCompletion.create(
+        model="gpt-4",  # Using GPT-4 model
+        messages=[
+            {"role": "system", "content": "You are an expert in healthcare claims and enrollment data."},
+            {"role": "user", "content": prompt}
+        ],
         max_tokens=150,
         temperature=0.2
     )
-    return response.choices[0].text.strip()
+    
+    # Extract and return the response text
+    return response['choices'][0]['message']['content'].strip()
 
 # Streamlit UI
 st.title("AI Agent for Simulated Claims and Enrollment Data")
