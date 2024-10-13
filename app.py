@@ -7,7 +7,7 @@ import openai
 api_key = st.secrets["OPENAI_API_KEY"]
 
 # Set up OpenAI client
-client = openai.OpenAI(api_key=api_key)
+openai.api_key = api_key
 
 # Generate Simulated Enrollment Data
 def generate_enrollment_data(n=100):
@@ -38,25 +38,30 @@ def generate_claims_data(enrollment_df, n=100):
 def load_data():
     enrollment_df = generate_enrollment_data()
     claims_df = generate_claims_data(enrollment_df)
-    return claims_df, enrollment_df
+    # Merge the datasets on MemberID
+    merged_df = pd.merge(claims_df, enrollment_df, on='MemberID', how='left')
+    return claims_df, enrollment_df, merged_df
 
-claims_df, enrollment_df = load_data()
+claims_df, enrollment_df, merged_df = load_data()
 
 # Function to process the user's question using GPT-4
-def ask_question(question, claims_df, enrollment_df):
-    # Combine the two datasets into a prompt
-    combined_data = (
-        f"Claims Data:\n{claims_df.head(10).to_string(index=False)}\n\n"
-        f"Enrollment Data:\n{enrollment_df.head(10).to_string(index=False)}\n"
+def ask_question(question, merged_df):
+    # Prepare a sample of the merged data for the prompt
+    merged_sample = merged_df.head(10).to_string(index=False)
+    prompt = (
+        "You are an expert in healthcare claims and enrollment data.\n"
+        "Here is a sample of the merged claims and enrollment data:\n"
+        f"{merged_sample}\n\n"
+        f"User Question: {question}\n"
+        "Answer based on the data provided."
     )
-    prompt = f"{combined_data}\n\nUser Question: {question}\nAnswer based on the data:"
 
-    # Call the OpenAI Chat API using the client object
+    # Call the OpenAI Chat API
     try:
-        response = client.chat.completions.create(
+        response = openai.ChatCompletion.create(
             model="gpt-4",
             messages=[
-                {"role": "system", "content": "You are an expert in healthcare claims and enrollment data. Use the data provided to answer the user's question."},
+                {"role": "system", "content": "You are an expert data analyst."},
                 {"role": "user", "content": prompt}
             ],
             temperature=0.2,
@@ -79,10 +84,13 @@ if st.checkbox("Show Claims Data"):
 if st.checkbox("Show Enrollment Data"):
     st.dataframe(enrollment_df)
 
+if st.checkbox("Show Merged Data"):
+    st.dataframe(merged_df)
+
 # Input box for the user to ask questions
 question = st.text_input("Ask any question about the claims or enrollment data:")
 
 if question:
-    answer = ask_question(question, claims_df, enrollment_df)
+    answer = ask_question(question, merged_df)
     st.write("Answer:")
     st.write(answer)
