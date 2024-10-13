@@ -2,30 +2,27 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import openai
-from faker import Faker
 
 # Set OpenAI API Key (replace with your actual key)
-openai.api_key =  st.secrets["OPENAI_API_KEY"]
+openai.api_key = st.secrets["OPENAI_API_KEY"]
 
 # Generate Simulated Claims Data
 def generate_claims_data(n=100):
-    faker = Faker()
     claims_data = {
-        'ClaimID': [faker.uuid4() for _ in range(n)],
+        'ClaimID': [f"C{str(i).zfill(4)}" for i in range(1, n+1)],  # Simple ClaimID like C0001
         'MemberID': np.random.randint(1000, 1100, n),
         'ClaimAmount': np.round(np.random.uniform(100, 5000, n), 2),
-        'DateOfClaim': [faker.date_this_year() for _ in range(n)],
+        'DateOfClaim': pd.date_range(start='2023-01-01', periods=n).strftime('%Y-%m-%d'),
         'ClaimStatus': np.random.choice(['Approved', 'Pending', 'Rejected'], n)
     }
     return pd.DataFrame(claims_data)
 
 # Generate Simulated Enrollment Data
 def generate_enrollment_data(n=100):
-    faker = Faker()
     enrollment_data = {
         'MemberID': np.random.randint(1000, 1100, n),
-        'MemberName': [faker.name() for _ in range(n)],
-        'DateOfEnrollment': [faker.date_this_decade() for _ in range(n)],
+        'MemberName': [f"Member_{str(i).zfill(4)}" for i in range(1, n+1)],  # Simple MemberName like Member_0001
+        'DateOfEnrollment': pd.date_range(start='2015-01-01', periods=n).strftime('%Y-%m-%d'),
         'PlanType': np.random.choice(['HMO', 'PPO', 'EPO', 'POS'], n)
     }
     return pd.DataFrame(enrollment_data)
