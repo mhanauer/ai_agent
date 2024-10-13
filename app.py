@@ -36,7 +36,7 @@ def load_data():
 
 claims_df, enrollment_df = load_data()
 
-# Function to process the user's question using GPT-4 (with the new chat completion API)
+# Function to process the user's question using GPT-4
 def ask_question(question, claims_df, enrollment_df):
     # Combine the two datasets into a prompt
     combined_data = (
@@ -45,8 +45,8 @@ def ask_question(question, claims_df, enrollment_df):
     )
     prompt = f"{combined_data}\n\nUser Question: {question}\nAnswer based on the data:"
 
-    # Call the OpenAI Chat API using the new interface
-    response = openai.chat_completion.create(
+    # Call the OpenAI Chat API using the correct method
+    response = openai.ChatCompletion.create(
         model="gpt-4",  # Using GPT-4 model
         messages=[
             {"role": "system", "content": "You are an expert in healthcare claims and enrollment data."},
