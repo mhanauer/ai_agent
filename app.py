@@ -3,8 +3,11 @@ import pandas as pd
 import numpy as np
 import openai
 
-# Set OpenAI API Key (replace with your actual key)
-openai.api_key = st.secrets["OPENAI_API_KEY"]
+# Set OpenAI API Key
+api_key = st.secrets["OPENAI_API_KEY"]
+
+# Set up OpenAI client
+client = openai.OpenAI(api_key=api_key)
 
 # Generate Simulated Claims Data
 def generate_claims_data(n=100):
@@ -45,19 +48,21 @@ def ask_question(question, claims_df, enrollment_df):
     )
     prompt = f"{combined_data}\n\nUser Question: {question}\nAnswer based on the data:"
 
-    # Call the OpenAI Chat API using the correct method
-    response = openai.ChatCompletion.create(
-        model="gpt-4",  # Using GPT-4 model
-        messages=[
-            {"role": "system", "content": "You are an expert in healthcare claims and enrollment data."},
-            {"role": "user", "content": prompt}
-        ],
-        temperature=0.2,
-        max_tokens=150
-    )
-
-    # Extract and return the response text
-    return response.choices[0].message.content.strip()
+    # Call the OpenAI Chat API using the client object
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": "You are an expert in healthcare claims and enrollment data."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.2,
+            max_tokens=150
+        )
+        # Extract and return the response text
+        return response.choices[0].message.content.strip()
+    except Exception as e:
+        return f"An error occurred: {e}"
 
 # Streamlit UI
 st.title("AI Agent for Simulated Claims and Enrollment Data")
