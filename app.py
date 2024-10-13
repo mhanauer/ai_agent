@@ -5,7 +5,7 @@ import openai
 from faker import Faker
 
 # Set OpenAI API Key (replace with your actual key)
-openai.api_key = 'your-openai-api-key'
+openai.api_key =  st.secrets["OPENAI_API_KEY"]
 
 # Generate Simulated Claims Data
 def generate_claims_data(n=100):
